@@ -1,5 +1,6 @@
 import sqlite3
 import conection
+import gerir_arquivos
 
 
 def cria_banco():
@@ -20,7 +21,25 @@ def cria_banco():
     except sqlite3.Error as e:
         print(f"Erro {e}")
     conn.close()
-  
+
+
+def get_all():
+    conn = conection.conectar_banco()
+    
+    try:
+        cursor = conn.cursor()
+        query = "SELECT * FROM products WHERE products.price <= 10"
+        cursor.execute(query) 
+        lista_tuplas = cursor.fetchmany(size=cursor.arraysize // 2)
+        
+        resul_json = gerir_arquivos.to_JSON(lista_tuplas)
+        return resul_json
+
+    except sqlite3.Error as e :
+        print(f"Erro ao pegar produtos no banco {e}")
+        
+    conn.close()
+        
 
 
 def cadastrar_banco(dados):
@@ -31,7 +50,7 @@ def cadastrar_banco(dados):
         with conn:
             cursor = conn.cursor()
 
-            # avoid Injection? placeholders in parameterized queries ensure that input values are treated as data
+            # avoid Injection? sqlite placeholders in parameterized queries ensure that input values are treated as data
             query = "INSERT INTO products (name, price, description) VALUES (?, ?, ?)"
             cursor.executemany(query, dados)
             
